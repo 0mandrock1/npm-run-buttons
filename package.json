@@ -2,7 +2,7 @@
   "name": "npm-run-buttons",
   "displayName": "npm Run Buttons",
   "description": "Run npm scripts and read their live output in the sidebar.",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "publisher": "0mandrock1",
   "engines": { "vscode": "^1.85.0" },
   "categories": ["Other"],
@@ -16,7 +16,7 @@
   "contributes": {
     "viewsContainers": {
       "activitybar": [
-        { "id": "npmRunButtons", "title": "npm Run Buttons", "icon": "media/run.png" }
+        { "id": "npmRunButtons", "title": "npm Scripts", "icon": "media/run.png" }
       ]
     },
     "views": {
@@ -26,6 +26,6 @@
     }
   },
   "scripts": {
-    "check": "node --check src/extension.js && node --check src/runner.js && node --check media/sidebar.js"
+    "check": "node --check src/extension.js && node --check src/runner.js && node --check media/sidebar.js && node --check media/terminal.js"
   }
 }

@@ -10,7 +10,7 @@ document.querySelector('#clear').onclick = () => vscode.postMessage({ type: 'cle
 window.addEventListener('message', ({ data }) => {
   if (data.type === 'output') {
     const follow = output.scrollHeight - output.scrollTop - output.clientHeight < 24;
-    output.textContent = data.output;
+    renderTerminal(output, data.output, link => vscode.postMessage({ type: 'openFile', ...link }));
     if (follow) output.scrollTop = output.scrollHeight;
     return;
   }
@@ -25,14 +25,19 @@ window.addEventListener('message', ({ data }) => {
     const section = document.createElement('section');
     const heading = document.createElement('h3');
     heading.textContent = project.label;
-    section.append(heading);
+    if (data.projects.length > 1) section.append(heading);
     const scripts = document.createElement('div');
     scripts.className = 'scripts';
     if (!project.scripts.length) scripts.textContent = project.error || 'No npm scripts.';
     for (const name of project.scripts) {
       const button = document.createElement('button');
       button.type = 'button';
-      button.textContent = name;
+      button.className = 'run-button';
+      button.title = 'Run ' + name;
+      const icon = document.createElement('span');
+      icon.className = 'icon play';
+      icon.setAttribute('aria-hidden', 'true');
+      button.append(icon, document.createTextNode(name));
       button.dataset.project = project.id;
       button.dataset.script = name;
       button.disabled = data.busy;

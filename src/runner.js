@@ -1,7 +1,7 @@
 const { spawn, execFile } = require('node:child_process');
 const { existsSync } = require('node:fs');
 const path = require('node:path');
-const { promisify, stripVTControlCharacters } = require('node:util');
+const { promisify } = require('node:util');
 
 const exec = promisify(execFile);
 const windows = process.platform === 'win32';
@@ -23,12 +23,15 @@ async function npmCommand() {
 }
 
 function run({ executable, args }, cwd, name) {
+  const env = { ...process.env };
+  delete env.NO_COLOR;
+  env.FORCE_COLOR = '1';
   return spawn(executable, [...args, 'run', '--', name], {
     cwd,
     detached: !windows,
     windowsHide: true,
     stdio: ['ignore', 'pipe', 'pipe'],
-    env: { ...process.env, FORCE_COLOR: '0', NO_COLOR: '1' }
+    env
   });
 }
 
@@ -41,8 +44,11 @@ async function stop(child) {
   }
 }
 
-function cleanOutput(chunk) {
-  return stripVTControlCharacters(chunk).replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+function fileLocation(root, file, line, column) {
+  if (typeof file !== 'string' || !file || file.length > 4096 || /[\x00-\x1f]/.test(file)) return;
+  if (/^[\w+.-]+:\/\//.test(file)) return;
+  if (![line, column].every(value => Number.isSafeInteger(value) && value > 0 && value <= 0x7fffffff)) return;
+  return { file: path.resolve(root, file), line: line - 1, column: column - 1 };
 }
 
-module.exports = { npmCommand, run, stop, cleanOutput };
+module.exports = { npmCommand, run, stop, fileLocation };

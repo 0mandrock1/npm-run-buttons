@@ -1,8 +1,9 @@
 # npm Run Buttons
 
-Open **npm Run Buttons** from the VS Code Activity Bar and click a script. Its
-live standard output, errors, and exit status appear in the sidebar. Use
-**Stop** for long-running scripts and **Clear** to empty the output.
+Open **npm Scripts** from the VS Code Activity Bar and click a script. Its
+live output uses your theme's terminal colors. Click a file path in the output
+to open it in the editor at the reported line and column. Use the **Stop script**
+and **Clear output** icons to control the run log.
 
 The sidebar reads the root `package.json` of each open workspace folder and
 refreshes when it changes. It runs one script at a time using npm from the

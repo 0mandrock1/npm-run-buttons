@@ -1,6 +1,6 @@
-﻿const vscode = require('vscode');
+const vscode = require('vscode');
 const path = require('node:path');
-const { npmCommand, run, stop, cleanOutput } = require('./runner');
+const { npmCommand, run, stop, fileLocation } = require('./runner');
 
 function activate(context) {
   let view;
@@ -8,6 +8,8 @@ function activate(context) {
   let current;
   let output = '';
   let status = '';
+  let outputFolder;
+  let outputTimer;
   let refreshVersion = 0;
 
   function post(message) {
@@ -20,8 +22,31 @@ function activate(context) {
   }
 
   function append(chunk) {
-    output = (output + chunk).slice(-100_000);
-    post({ type: 'output', output });
+    output += chunk;
+    if (output.length > 100_000) {
+      const nextLine = output.indexOf('\n', output.length - 100_000);
+      output = output.slice(nextLine < 0 ? -100_000 : nextLine + 1);
+    }
+    outputTimer ??= setTimeout(() => {
+      outputTimer = undefined;
+      post({ type: 'output', output });
+    }, 40);
+  }
+
+  async function openOutputFile(message) {
+    if (!outputFolder || !vscode.workspace.isTrusted) return;
+    const location = fileLocation(outputFolder.fsPath, message.file, message.line, message.column);
+    if (!location) return;
+    const uri = outputFolder.with({ path: vscode.Uri.file(location.file).path });
+    try {
+      const info = await vscode.workspace.fs.stat(uri);
+      if (!(info.type & vscode.FileType.File)) throw new Error('Expected a file');
+      const document = await vscode.workspace.openTextDocument(uri);
+      const position = document.validatePosition(new vscode.Position(location.line, location.column));
+      await vscode.window.showTextDocument(document, { selection: new vscode.Range(position, position) });
+    } catch {
+      void vscode.window.showWarningMessage('Could not open ' + message.file);
+    }
   }
 
   async function readProject(folder) {
@@ -63,6 +88,7 @@ function activate(context) {
 
     const job = {};
     current = job;
+    outputFolder = folder.uri;
     status = 'Starting ' + name + '…';
     output = '';
     append('');
@@ -82,7 +108,7 @@ function activate(context) {
       status = 'Running ' + name;
       state();
       for (const stream of [child.stdout, child.stderr]) {
-        stream.setEncoding('utf8').on('data', chunk => append(cleanOutput(chunk)));
+        stream.setEncoding('utf8').on('data', chunk => append(chunk));
       }
       child.once('error', error => {
         append(error.message + '\n');
@@ -117,6 +143,7 @@ function activate(context) {
     watcher.onDidCreate(refresh), watcher.onDidDelete(refresh),
     vscode.workspace.onDidChangeWorkspaceFolders(refresh),
     { dispose: () => {
+      clearTimeout(outputTimer);
       const job = current;
       current = undefined;
       void stop(job?.child).catch(() => {});
@@ -136,6 +163,8 @@ function activate(context) {
             void start(message.id, message.name);
           } else if (message?.type === 'stop') {
             void stopCurrent();
+          } else if (message?.type === 'openFile') {
+            void openOutputFile(message);
           } else if (message?.type === 'clear') {
             output = '';
             append('');
@@ -158,11 +187,12 @@ function activate(context) {
 <section aria-label="Run output">
   <div class="toolbar">
     <span id="status" role="status">Ready</span>
-    <button id="stop" type="button" disabled>Stop</button>
-    <button id="clear" type="button">Clear</button>
+    <button class="icon-button" id="stop" type="button" aria-label="Stop script" title="Stop script" disabled><span class="icon stop" aria-hidden="true"></span></button>
+    <button class="icon-button" id="clear" type="button" aria-label="Clear output" title="Clear output"><span class="icon clear" aria-hidden="true"></span></button>
   </div>
   <pre id="output" aria-label="Output" tabindex="0"></pre>
 </section>
+<script src="${resource('terminal.js')}"></script>
 <script src="${resource('sidebar.js')}"></script>
 </body>
 </html>`;

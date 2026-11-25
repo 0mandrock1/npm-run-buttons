@@ -1,60 +1,150 @@
+:root {
+  color-scheme: light dark;
+  font: var(--vscode-font-size, 13px) var(--vscode-font-family, system-ui), sans-serif;
+}
+
 body {
+  margin: 0;
   padding: 12px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  color: var(--vscode-sideBar-foreground);
+  gap: 14px;
+  background: var(--vscode-sideBar-background, Canvas);
+  color: var(--vscode-sideBar-foreground, var(--vscode-foreground, CanvasText));
 }
 
 h3 {
+  color: inherit;
   font-size: 1em;
-  margin: 0 0 8px;
+  font-weight: 600;
+  margin: 0 0 6px;
   overflow-wrap: anywhere;
 }
 
-#projects section + section { margin-top: 16px; }
+#projects section + section { margin-top: 14px; }
 
-.scripts, .toolbar {
+.scripts {
+  display: grid;
+  gap: 2px;
+}
+
+.toolbar {
   display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
+  gap: 4px;
   align-items: center;
+  padding: 4px 6px 4px 10px;
+  background: var(--vscode-sideBarSectionHeader-background, transparent);
+  border-bottom: 1px solid var(--vscode-panel-border, transparent);
 }
 
 #status {
   flex: 1;
-  min-width: 75px;
+  min-width: 0;
   overflow-wrap: anywhere;
 }
 
 button {
-  border: 1px solid var(--vscode-button-border, transparent);
-  border-radius: 3px;
-  padding: 4px 8px;
-  color: var(--vscode-button-secondaryForeground);
-  background: var(--vscode-button-secondaryBackground);
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: inherit;
   font: inherit;
   cursor: pointer;
-  max-width: 100%;
+}
+
+.run-button {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 28px;
+  padding: 5px 8px;
+  text-align: left;
   overflow-wrap: anywhere;
 }
 
-button:hover:enabled { background: var(--vscode-button-secondaryHoverBackground); }
-button:focus-visible, pre:focus-visible { outline: 1px solid var(--vscode-focusBorder); }
-button:disabled { opacity: .55; cursor: default; }
+.run-button:hover:enabled {
+  background: var(--vscode-list-hoverBackground, Highlight);
+  color: var(--vscode-list-hoverForeground, var(--vscode-foreground, CanvasText));
+}
+
+.icon-button {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  flex: 0 0 auto;
+  color: var(--vscode-icon-foreground, var(--vscode-foreground, CanvasText));
+}
+
+.icon-button:hover:enabled { background: var(--vscode-toolbar-hoverBackground, Highlight); }
+
+button:focus-visible, pre:focus-visible, a:focus-visible {
+  outline: 1px solid var(--vscode-focusBorder, Highlight);
+  outline-offset: -1px;
+}
+
+button:disabled { opacity: .5; cursor: default; }
+.icon { display: inline-block; flex: 0 0 auto; }
+
+.play {
+  width: 0;
+  height: 0;
+  border-block: 5px solid transparent;
+  border-left: 8px solid currentColor;
+}
+
+.stop {
+  width: 9px;
+  height: 9px;
+  border: 1.5px solid currentColor;
+}
+
+.clear {
+  width: 8px;
+  height: 9px;
+  margin-top: 4px;
+  border: 1.5px solid currentColor;
+  border-top: 0;
+  border-radius: 0 0 2px 2px;
+  position: relative;
+}
+
+.clear::before, .clear::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  translate: -50% 0;
+  background: currentColor;
+}
+
+.clear::before { width: 14px; height: 1.5px; top: -2px; }
+.clear::after { width: 5px; height: 1.5px; top: -4px; }
+
+section[aria-label="Run output"] {
+  overflow: hidden;
+  border: 1px solid var(--vscode-panel-border, color-mix(in srgb, currentColor 20%, transparent));
+  border-radius: 5px;
+}
 
 pre {
-  box-sizing: border-box;
-  margin: 8px 0 0;
-  min-height: 100px;
+  margin: 0;
+  min-height: 96px;
   max-height: 55vh;
-  padding: 8px;
-  border: 1px solid var(--vscode-panel-border, transparent);
-  border-radius: 3px;
-  background: var(--vscode-editor-background);
-  color: var(--vscode-editor-foreground);
+  padding: 9px 10px;
+  background: var(--vscode-terminal-background, var(--vscode-editor-background, Canvas));
+  color: var(--vscode-terminal-foreground, var(--vscode-editor-foreground, CanvasText));
   overflow: auto;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
-  font: 12px/1.45 var(--vscode-editor-font-family, monospace);
+  font-family: var(--vscode-editor-font-family, monospace);
+  font-size: var(--vscode-editor-font-size, 12px);
+  line-height: 1.45;
 }
+
+pre a {
+  color: var(--vscode-textLink-foreground, LinkText);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+pre a:hover { color: var(--vscode-textLink-activeForeground, LinkText); }
